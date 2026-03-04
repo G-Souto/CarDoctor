@@ -68,8 +68,9 @@ export default function CadProduto() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+      console.log("SUBMIT DISPAROU 🔥")
     try {
-      const response = await fetch("http://localhost:8080/automovel", {
+      const response = await fetch("http://localhost:8080/veiculos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,6 +100,7 @@ export default function CadProduto() {
 
         // Navegando para a página de produtos
         router.push("/produtos")
+        console.log("Enviando:", automovelData)
       }
     } catch (error) {
       console.error("Falha ao criar o produto: ", error)
@@ -106,12 +108,12 @@ export default function CadProduto() {
   }
 
   return (
-    <div>
-      <h2>Cadastro de Veículos</h2>
+    <div className="min-h-screen bg-gray-100 ">
+      <h2 className="flex items-center justify-center text-2xl font-bold text-center mt-6 mb-4">Cadastro de Veículos</h2>
 
-      <div>
-        <form onSubmit={handleSubmit} className="max-w-sm mx-auto">
-          <div className="mb-5">
+      <form onSubmit={handleSubmit}>
+        <div className="w-full flex flex-col items-center justify-center">
+          <div className=" m-5 bg-blue-500 rounded-lg p-5 w-1/2">
             <Input
               label="Ano do automóvel"
               name="NR_ANO"
@@ -195,13 +197,14 @@ export default function CadProduto() {
             </select>
           </div>
           <button
+          
             type="submit"
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
           >
             Cadastrar
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   )
 }
