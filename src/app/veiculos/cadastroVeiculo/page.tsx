@@ -70,7 +70,7 @@ export default function CadProduto() {
     e.preventDefault()
       console.log("SUBMIT DISPAROU 🔥")
     try {
-      const response = await fetch("http://localhost:8080/veiculos", {
+      const response = await fetch("http://localhost:8080/api/automoveis", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,7 +99,7 @@ export default function CadProduto() {
         postRelacionamentoAutomovel(data.ID_AUTOMOVEL)
 
         // Navegando para a página de produtos
-        router.push("/produtos")
+        router.push("/veiculos")
         console.log("Enviando:", automovelData)
       }
     } catch (error) {

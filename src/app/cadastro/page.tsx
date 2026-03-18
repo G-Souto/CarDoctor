@@ -64,7 +64,7 @@ export default function Cadastro() {
   const fetchUser = async () => {
     try {
       const userResponse = await fetch(
-        `http://localhost:8080/usuario/{Usuario.NR_CPF}`
+        `http://localhost:8080/usuario/${Usuario.NR_CPF}`
       )
       const userData = await userResponse.json()
 
@@ -107,60 +107,64 @@ export default function Cadastro() {
   }
 
   const associateUserAndAddress = async () => {
-       const identifiers = await fetchUserAndAddress()
-       if (!identifiers) return 
-       const usuario_endereco = ({
-         ID_ENDERECO: identifiers.ID_ENDERECO,
-         ID_USUARIO: identifiers.ID_USUARIO,
-       })
-       try {
-         const response = await fetch(
-           "http://localhost:8080/relacionamento_endereco",
-           {
-             method: "POST",
-             headers: { "Content-Type": "application/json" },
-             body: JSON.stringify(usuario_endereco),
-           }
-         )
-         if (response.ok) {
-           alert("Associação criada com sucesso.")
-           setUsuario_endereco({
-             ID_ENDERECO: identifiers.ID_ENDERECO,
-             ID_USUARIO: identifiers.ID_USUARIO,
-           })
-         }
-       } catch (error) {
-         console.error("Erro ao criar a associação:", error)
-       }
+    const identifiers = await fetchUserAndAddress()
+    if (!identifiers) return
+    const usuario_endereco = ({
+      ID_ENDERECO: identifiers.ID_ENDERECO,
+      ID_USUARIO: identifiers.ID_USUARIO,
+    })
+    try {
+      const response = await fetch(
+        "http://localhost:8080/relacionamento_endereco",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(usuario_endereco),
+        }
+      )
+      if (response.ok) {
+        alert("Associação criada com sucesso.")
+        setUsuario_endereco({
+          ID_ENDERECO: identifiers.ID_ENDERECO,
+          ID_USUARIO: identifiers.ID_USUARIO,
+        })
+      }
+    } catch (error) {
+      console.error("Erro ao criar a associação:", error)
+    }
   }
-const handleChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-) => {
-  const { name, value } = e.target;
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
 
-  if (step === 1) {
-    setUsuario((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  } else if (step === 2) {
-    setEnderecousuario((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  } else if (step === 3) {
-    setTelefoneusuario((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  }
+    if (step === 1) {
+      setUsuario((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    } else if (step === 2) {
+      setEnderecousuario((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    } else if (step === 3) {
+      setTelefoneusuario((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
     else if (step === 4) {
-    setLoginUsuario((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-}
+      if (name === "confirmaSenha") {
+        setConfirmarSenha(value)
+      } else {
+        setLoginUsuario((prev) => ({
+          ...prev,
+          [name]: value,
+        }))
+      }
+    }
+  }
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -207,20 +211,14 @@ const handleChange = (
       const identifiers = await fetchUser()
       if (!identifiers) return
       try {
-        const telefoneusuario = {
-          ID_TELEFONE: 0,
-          ID_USUARIO: identifiers.ID_USUARIO,
-          NR_DDI: 0,
-          NR_DDD: 0,
-          NR_TELEFONE: "",
-          NR_TELEFONE_COMPLETO: "",
-          TP_TELEFONE: "",
-          ST_TELEFONE: "",
-        }
+        const telefone = {
+  ...telefoneusuario,
+  ID_USUARIO: identifiers.ID_USUARIO,
+}
         const response = await fetch("http://localhost:8080/telefone", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(telefoneusuario),
+          body: JSON.stringify(telefone),
         })
         if (response.ok) {
           alert("Telefone cadastrado com sucesso.")
@@ -239,9 +237,9 @@ const handleChange = (
       } catch (error) {
         console.error("Falha ao criar o endereço:", error)
       }
-      } else if (step === 4 && validarSenha()) {
-        const identifiers = await fetchUser()
-        if (!identifiers) return
+    } else if (step === 4 && validarSenha()) {
+      const identifiers = await fetchUser()
+      if (!identifiers) return
       try {
         const response = await fetch("http://localhost:8080/login", {
           method: "POST",
@@ -500,12 +498,13 @@ const handleChange = (
               </div>
               <Input
                 label="Senha"
-                name="senha"
+                name="DS_SENHA"
                 type="password"
                 value={loginusuario.DS_SENHA}
                 onChange={handleChange}
                 placeholder="Insira uma senha"
               />
+
               <Input
                 label="Confirmar Senha"
                 name="confirmaSenha"
@@ -514,9 +513,10 @@ const handleChange = (
                 onChange={handleChange}
                 placeholder="Confirme a sua senha"
               />
+
               <Input
                 label="Nome de Usuario"
-                name="nomeUsuario"
+                name="DS_USUARIO"
                 type="text"
                 value={loginusuario.DS_USUARIO}
                 onChange={handleChange}
