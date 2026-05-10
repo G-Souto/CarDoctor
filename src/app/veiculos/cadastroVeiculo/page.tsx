@@ -8,8 +8,7 @@ import { useEffect, useState } from "react"
 export default function CadProduto() {
   const router = useRouter()
 
-  const [automovelData, setAutomovelData] = useState<AutomovelUsuario>({
-    ID_AUTOMOVEL: 0,
+  const [automovelData, setAutomovelData] = useState<Omit<AutomovelUsuario, "ID_AUTOMOVEL">>({
     NR_QUILOMETRAGEM: 0,
     NR_ANO: 0,
     DS_PLACA: "",
@@ -21,6 +20,8 @@ export default function CadProduto() {
   })
 
   const [userId, setUserId] = useState<number | null>(null)
+  const [carregando, setCarregando] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
 
   useEffect(() => {
     const storedUserId = localStorage.getItem("ID_USUARIO")
@@ -34,86 +35,78 @@ export default function CadProduto() {
   ) => {
     const { name, value } = e.target
     setAutomovelData({ ...automovelData, [name]: value })
-  }
-
-  const postRelacionamentoAutomovel = async (idAutomovel: number) => {
-    if (userId) {
-      try {
-        const response = await fetch(
-          "http://localhost:8080/relacionamento_automovel",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              ID_AUTOMOVEL: idAutomovel,
-              ID_USUARIO: userId,
-            }),
-          }
-        )
-
-        if (!response.ok) {
-          throw new Error(
-            "Falha ao criar o relacionamento entre automóvel e usuário."
-          )
-        }
-      } catch (error) {
-        console.error("Erro ao criar relacionamento: ", error)
-      }
-    } else {
-      console.error("ID_USUARIO não encontrado.")
-    }
+    setErro(null)
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-      console.log("SUBMIT DISPAROU 🔥")
+    setErro(null)
+    setCarregando(true)
+
     try {
-      const response = await fetch("http://localhost:8080/api/automoveis", {
+      // 1. Cadastra o automóvel na API interna do Next.js (sem localhost!)
+      const response = await fetch("/api/automoveis", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(automovelData),
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        alert("Produto cadastrado com sucesso.")
+      const data = await response.json()
 
-        // Resetando o estado do formulário
-        setAutomovelData({
-          ID_AUTOMOVEL: 0,
-          NR_QUILOMETRAGEM: 0,
-          NR_ANO: 0,
-          DS_PLACA: "",
-          DS_MODELO: "",
-          TP_AUTOMOVEL: "",
-          DS_MARCA: "",
-          DS_HISTORICO_AUTOMOVEL: "",
-          DS_AUTOMOVEL: "",
-        })
-
-        // Chamando a função para criar o relacionamento
-        postRelacionamentoAutomovel(data.ID_AUTOMOVEL)
-
-        // Navegando para a página de produtos
-        router.push("/veiculos")
-        console.log("Enviando:", automovelData)
+      if (!response.ok) {
+        setErro(data.msg || "Erro ao cadastrar veículo.")
+        return
       }
+
+      // 2. Cria o relacionamento usuário ↔ automóvel (se tiver backend externo)
+      // Caso não tenha backend, pode remover ou adaptar esse bloco
+      if (userId) {
+        try {
+          await fetch("/api/relacionamento_automovel", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ID_AUTOMOVEL: data.ID_AUTOMOVEL,
+              ID_USUARIO: userId,
+            }),
+          })
+        } catch {
+          // Relacionamento é opcional — não bloqueia o fluxo
+          console.warn("Não foi possível criar o relacionamento de usuário.")
+        }
+      }
+
+      // 3. Reseta o formulário e redireciona
+      setAutomovelData({
+        NR_QUILOMETRAGEM: 0,
+        NR_ANO: 0,
+        DS_PLACA: "",
+        DS_MODELO: "",
+        TP_AUTOMOVEL: "",
+        DS_MARCA: "",
+        DS_HISTORICO_AUTOMOVEL: "",
+        DS_AUTOMOVEL: "",
+      })
+
+      alert("Veículo cadastrado com sucesso!")
+      router.push("/veiculos")
     } catch (error) {
-      console.error("Falha ao criar o produto: ", error)
+      setErro("Erro de conexão. Tente novamente.")
+      console.error("Erro:", error)
+    } finally {
+      setCarregando(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 ">
-      <h2 className="flex items-center justify-center text-2xl font-bold text-center mt-6 mb-4">Cadastro de Veículos</h2>
+    <div className="min-h-screen bg-gray-100">
+      <h2 className="flex items-center justify-center text-2xl font-bold text-center mt-6 mb-4">
+        Cadastro de Veículos
+      </h2>
 
       <form onSubmit={handleSubmit}>
         <div className="w-full flex flex-col items-center justify-center">
-          <div className=" m-5 bg-blue-500 rounded-lg p-5 w-1/2">
+          <div className="m-5 bg-blue-500 rounded-lg p-5 w-1/2">
             <Input
               label="Ano do automóvel"
               name="NR_ANO"
@@ -173,6 +166,7 @@ export default function CadProduto() {
               name="TP_AUTOMOVEL"
               value={automovelData.TP_AUTOMOVEL}
               onChange={handleChange}
+              required
             >
               <option value="">Selecione o Tipo de automóvel</option>
               <option value="MOTO">Moto</option>
@@ -195,13 +189,21 @@ export default function CadProduto() {
               <option value="NOVO">Novo</option>
               <option value="USADO">Usado</option>
             </select>
+
+            {/* Mensagem de erro */}
+            {erro && (
+              <div className="bg-red-100 border border-red-400 text-red-700 rounded-lg px-4 py-3 mb-4 text-sm">
+                {erro}
+              </div>
+            )}
           </div>
+
           <button
-          
             type="submit"
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            disabled={carregando}
+            className="text-white bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
           >
-            Cadastrar
+            {carregando ? "Cadastrando..." : "Cadastrar"}
           </button>
         </div>
       </form>

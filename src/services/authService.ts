@@ -5,20 +5,24 @@ export type LoginUsuario = {
   DS_USUARIO: string
 }
 
+// Autentica o usuário via API interna do Next.js (sem localhost!)
 export async function getUserIdByCredentials(
   DS_USUARIO: string,
   DS_SENHA: string
-): Promise<number | null> {
+): Promise<{ ID_USUARIO: number; NM_USUARIO: string } | null> {
   try {
-    const response = await fetch("http://localhost:8080/login")
-    const data: LoginUsuario[] = await response.json()
+    const response = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ DS_USUARIO, DS_SENHA }),
+    })
 
-    const usuario = data.find(
-      (user) => user.DS_USUARIO === DS_USUARIO && user.DS_SENHA === DS_SENHA
-    )
-    return usuario ? usuario.ID_USUARIO : null
+    if (!response.ok) return null
+
+    const data = await response.json()
+    return data
   } catch (error) {
-    console.error("Erro ao buscar o usuário:", error)
+    console.error("Erro ao autenticar:", error)
     return null
   }
 }
