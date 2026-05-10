@@ -12,24 +12,13 @@
   },
   {
     "ID_AUTOMOVEL": 2,
-    "NR_QUILOMETRAGEM": 62999,
-    "NR_ANO": 2002,
-    "DS_PLACA": "SKN547",
-    "DS_MODELO": "b450",
+    "NR_QUILOMETRAGEM": 90000,
+    "NR_ANO": 2020,
+    "DS_PLACA": "GEK3B88",
+    "DS_MODELO": "Sportage",
     "TP_AUTOMOVEL": "CARRO",
-    "DS_MARCA": "mercedes",
-    "DS_HISTORICO_AUTOMOVEL": "NOVO",
-    "DS_AUTOMOVEL": "usado"
-  },
-  {
-    "ID_AUTOMOVEL": 3,
-    "NR_QUILOMETRAGEM": 152997,
-    "NR_ANO": 2004,
-    "DS_PLACA": "DDT4I00",
-    "DS_MODELO": "Gol G3",
-    "TP_AUTOMOVEL": "CARRO",
-    "DS_MARCA": "Wolksvagem",
+    "DS_MARCA": "Kia",
     "DS_HISTORICO_AUTOMOVEL": "USADO",
-    "DS_AUTOMOVEL": "Veiculo com avarias na coluna e rodas riscadas, lata funcionando e detalhes na interna "
+    "DS_AUTOMOVEL": "SUV Preto 2.0"
   }
 ]
