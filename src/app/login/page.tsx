@@ -53,7 +53,7 @@ export default function Login() {
       <div className="hidden lg:block lg:w-2/3 bg-[url('/wallpaper_carro_paisagem.jpg')] bg-cover bg-left" />
 
       {/* Área de login */}
-      <div className="lg:w-1/3 w-full flex flex-col justify-evenly p-8 bg-white min-h-screen">
+      <div className="lg:w-1/3 w-full flex flex-col justify-evenly p-8 min-h-screen">
         <div className="flex justify-center mb-8">
           <h1 className="text-4xl lg:text-5xl font-bold text-blue-600">
             CarDoctor
