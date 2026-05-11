@@ -2,13 +2,7 @@
   {
     "ID_LOGIN": 1,
     "DS_USUARIO": "Souto",
-    "DS_SENHA": "Gustavo@2021",
+    "DS_SENHA": "123456",
     "ID_USUARIO": 1
-  },
-  {
-    "ID_LOGIN": 2,
-    "DS_USUARIO": "Clovis",
-    "DS_SENHA": "1234567",
-    "ID_USUARIO": 2
   }
 ]

@@ -10,7 +10,7 @@ export default function Header() {
 
   useEffect(() => {
     const token = localStorage.getItem("authToken")
-    const nome = localStorage.getItem("NM_USUARIO") || localStorage.getItem("DS_USUARIO") || ""
+    const nome =  localStorage.getItem("DS_USUARIO") || ""
     if (token) {
       setIsLoggedIn(true)
       setNomeUsuario(nome)

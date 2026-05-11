@@ -50,7 +50,7 @@ export default function Login() {
   return (
     <main className="flex flex-col lg:flex-row w-full min-h-screen">
       {/* Imagem de fundo */}
-      <div className="hidden lg:block lg:w-2/3 bg-[url('/wallpaper_carro_paisagem.jpg')] bg-cover bg-left h-full" />
+      <div className="hidden lg:block lg:w-2/3 bg-[url('/wallpaper_carro_paisagem.jpg')] bg-cover bg-left" />
 
       {/* Área de login */}
       <div className="lg:w-1/3 w-full flex flex-col justify-evenly p-8 bg-white min-h-screen">

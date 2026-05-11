@@ -12,13 +12,13 @@
   },
   {
     "ID_AUTOMOVEL": 2,
-    "NR_QUILOMETRAGEM": 90000,
-    "NR_ANO": 2020,
-    "DS_PLACA": "GEK3B88",
-    "DS_MODELO": "Sportage",
+    "NR_QUILOMETRAGEM": 150000,
+    "NR_ANO": 2003,
+    "DS_PLACA": "DDT4I00",
+    "DS_MODELO": "Amg",
     "TP_AUTOMOVEL": "CARRO",
-    "DS_MARCA": "Kia",
+    "DS_MARCA": "Mercedes",
     "DS_HISTORICO_AUTOMOVEL": "USADO",
-    "DS_AUTOMOVEL": "SUV Preto 2.0"
+    "DS_AUTOMOVEL": "Pequenas avarias na lata"
   }
 ]
