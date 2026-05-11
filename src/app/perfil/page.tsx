@@ -1,13 +1,12 @@
 "use client"
 import Header from "@/components/Header/Header"
-import { Usuario, telefoneusuario, enderecousuario, usuario_endereco, loginusuario } from "@/types"
+import { Usuario, loginusuario } from "@/types"
 import { useEffect, useRef, useState } from "react"
 
 export default function UserProfile() {
   const [userId, setUserId] = useState<number | null>(null)
   const [usuario, setUsuario] = useState<Usuario | null>(null)
-  const [telefones, setTelefones] = useState<telefoneusuario[]>([])
-  const [endereco, setEndereco] = useState<enderecousuario | null>(null)
+  const [login, setLogin] = useState<loginusuario | null>(null)
   const [fotoPerfil, setFotoPerfil] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
@@ -27,39 +26,22 @@ export default function UserProfile() {
       setIsLoading(true)
       setErro(null)
       try {
-        // 1. Busca o login para pegar o CPF (DS_USUARIO) associado ao ID_USUARIO
-        const loginRes = await fetch("http://localhost:3000/login")
-        const logins: loginusuario[] = await loginRes.json()
-        const loginDoUsuario = logins.find((l) => l.ID_USUARIO === userId)
-        if (!loginDoUsuario) throw new Error("Login não encontrado")
-
-        // 2. Busca dados do usuário pelo CPF
-        const usuRes = await fetch(`http://localhost:3000/usuario/${loginDoUsuario.DS_USUARIO}`)
+        // 1. Busca dados do usuário pelo ID via API interna
+        const usuRes = await fetch(`/api/usuarios?id=${userId}`)
+        if (!usuRes.ok) throw new Error("Usuário não encontrado")
         const usuData: Usuario = await usuRes.json()
         setUsuario(usuData)
 
-        // 3. Busca relacionamento endereço e filtra pelo userId
-        const relRes = await fetch("http://localhost:3000/relacionamento_endereco")
-        const relData: usuario_endereco[] = await relRes.json()
-        const relDoUsuario = relData.find((r) => r.ID_USUARIO === userId)
-
-        // 4. Busca o endereço pelo CEP (se houver relacionamento)
-        if (relDoUsuario) {
-          // Busca todos endereços e filtra pelo ID_ENDERECO
-          const endRes = await fetch(`http://localhost:3000/endereco`)
-          const endData: enderecousuario[] = await endRes.json()
-          const endDoUsuario = endData.find((e) => e.ID_ENDERECO === relDoUsuario.ID_ENDERECO)
-          if (endDoUsuario) setEndereco(endDoUsuario)
+        // 2. Busca todos os logins e filtra pelo ID do usuário
+        const loginRes = await fetch("/api/login")
+        if (loginRes.ok) {
+          const logins: loginusuario[] = await loginRes.json()
+          const loginDoUsuario = logins.find((l) => l.ID_USUARIO === userId)
+          if (loginDoUsuario) setLogin(loginDoUsuario)
         }
-
-        // 5. Busca todos telefones e filtra pelo userId
-        const telRes = await fetch("http://localhost:3000/telefone")
-        const telData: telefoneusuario[] = await telRes.json()
-        setTelefones(telData.filter((t) => t.ID_USUARIO === userId))
-
       } catch (err) {
         console.error("Erro ao carregar perfil:", err)
-        setErro("Não foi possível carregar os dados. Verifique a conexão com o servidor.")
+        setErro("Não foi possível carregar os dados do perfil.")
       } finally {
         setIsLoading(false)
       }
@@ -78,6 +60,18 @@ export default function UserProfile() {
       localStorage.setItem("FOTO_PERFIL", base64)
     }
     reader.readAsDataURL(file)
+  }
+
+  const formatarData = (data: string) => {
+    if (!data) return "—"
+    const [ano, mes, dia] = data.split("-")
+    return `${dia}/${mes}/${ano}`
+  }
+
+  const formatCPF = (cpf: string): string => {
+    const d = cpf.replace(/\D/g, "")
+    if (d.length !== 11) return cpf
+    return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
   }
 
   return (
@@ -130,8 +124,6 @@ export default function UserProfile() {
 
           {/* Cartão principal */}
           <div className="card-glass rounded-2xl overflow-hidden fade-in">
-
-            {/* Topo azul decorativo */}
             <div className="h-1 accent-line w-full" />
 
             <div className="p-6 sm:p-8">
@@ -175,7 +167,9 @@ export default function UserProfile() {
                       <h1 className="heading-font text-3xl sm:text-4xl font-bold tracking-wide text-white leading-none">
                         {usuario.NM_USUARIO}
                       </h1>
-                      <p className="text-blue-400 text-sm mt-1 font-medium">{usuario.NR_IDADE} anos</p>
+                      {login && (
+                        <p className="text-blue-400 text-sm mt-1 font-medium">@{login.DS_USUARIO}</p>
+                      )}
                     </>
                   ) : (
                     <p className="text-white/40 italic">Usuário não encontrado</p>
@@ -195,7 +189,6 @@ export default function UserProfile() {
               </div>
             </div>
 
-            {/* Divisor */}
             <div className="h-px bg-white/5 mx-6 sm:mx-8" />
 
             {/* Seções de dados */}
@@ -212,8 +205,8 @@ export default function UserProfile() {
 
               {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className={`rounded-xl border border-white/6 p-5 space-y-3 ${i === 2 ? 'md:col-span-2' : ''}`}>
+                  {[...Array(2)].map((_, i) => (
+                    <div key={i} className="rounded-xl border border-white/6 p-5 space-y-3">
                       <div className="skeleton h-3 w-20 rounded" />
                       <div className="skeleton h-4 w-full rounded" />
                       <div className="skeleton h-4 w-3/4 rounded" />
@@ -232,58 +225,53 @@ export default function UserProfile() {
                     </p>
                     <div className="space-y-3">
                       <Campo label="Nome completo" valor={usuario.NM_USUARIO} />
-                      <Campo label="Data de nascimento" valor={usuario.DT_NASCIMENTO} />
+                      <Campo label="Data de nascimento" valor={formatarData(usuario.DT_NASCIMENTO)} />
                       <Campo label="CPF" valor={formatCPF(String(usuario.NR_CPF))} />
-                      <Campo label="CNH" valor={String(usuario.NR_CNH)} />
+                      <Campo label="CNH" valor={usuario.NR_CNH ? String(usuario.NR_CNH) : "—"} />
                     </div>
                   </div>
 
-                  {/* Telefones */}
+                  {/* Dados de acesso */}
                   <div className="rounded-xl border border-white/8 bg-white/[0.02] p-5">
                     <p className="tag text-emerald-400 mb-4 flex items-center gap-2">
                       <span className="w-4 h-4 rounded bg-emerald-600/30 flex items-center justify-center text-[9px]">▶</span>
-                      Contato
+                      Dados de Acesso
                     </p>
-                    {telefones.length > 0 ? (
-                      <div className="space-y-4">
-                        {telefones.map((t) => (
-                          <div key={t.ID_TELEFONE}>
-                            <Campo label={t.TP_TELEFONE} valor={`+${t.NR_DDI} (${t.NR_DDD}) ${t.NR_TELEFONE}`} />
-                            <span className={`tag mt-1 inline-block px-2 py-0.5 rounded-full ${t.ST_TELEFONE === 'A' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-white/30'}`}>
-                              {t.ST_TELEFONE === 'A' ? '● Ativo' : t.ST_TELEFONE}
-                            </span>
-                          </div>
-                        ))}
+                    {login ? (
+                      <div className="space-y-3">
+                        <Campo label="Nome de usuário" valor={login.DS_USUARIO} />
+                        <Campo label="ID do usuário" valor={String(login.ID_USUARIO)} />
+                        <div>
+                          <span className="block text-[10px] font-semibold tracking-widest uppercase text-white/30 mb-0.5">Senha</span>
+                          <span className="text-sm text-white/80 font-medium tracking-widest">••••••••</span>
+                        </div>
                       </div>
                     ) : (
-                      <p className="text-white/25 text-sm italic">Nenhum telefone cadastrado</p>
+                      <p className="text-white/25 text-sm italic">Login não encontrado</p>
                     )}
                   </div>
 
-                  {/* Endereço */}
+                  {/* Endereço e telefone — cadastrados via form de cadastro */}
                   <div className="rounded-xl border border-white/8 bg-white/[0.02] p-5 md:col-span-2">
                     <p className="tag text-orange-400 mb-4 flex items-center gap-2">
                       <span className="w-4 h-4 rounded bg-orange-600/30 flex items-center justify-center text-[9px]">▶</span>
-                      Endereço
-                      {endereco && (
-                        <span className="tag ml-auto px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
-                          {endereco.TP_ENDERECO}
-                        </span>
-                      )}
+                      Endereço & Contato
                     </p>
-                    {endereco ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <Campo label="Logradouro" valor={endereco.NM_LOGRADOURO} />
-                        <Campo label="Bairro" valor={endereco.NM_BAIRRO} />
-                        <Campo label="CEP" valor={formatCEP(endereco.NR_CEP)} />
-                        <Campo label="Cidade" valor={endereco.NM_CIDADE} />
-                        <Campo label="Estado" valor={endereco.NM_ESTADO} />
-                        {endereco.DS_COMPLEMENTO && <Campo label="Complemento" valor={endereco.DS_COMPLEMENTO} />}
-                        {endereco.DS_PONTO_REFERENCIA && <Campo label="Ponto de referência" valor={endereco.DS_PONTO_REFERENCIA} />}
-                      </div>
-                    ) : (
-                      <p className="text-white/25 text-sm italic">Nenhum endereço cadastrado</p>
-                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <Campo label="Estado" valor={(usuario as any).NM_ESTADO || "—"} />
+                      <Campo label="Cidade" valor={(usuario as any).NM_CIDADE || "—"} />
+                      <Campo label="Bairro" valor={(usuario as any).NM_BAIRRO || "—"} />
+                      <Campo label="CEP" valor={(usuario as any).NR_CEP || "—"} />
+                      <Campo label="Logradouro" valor={(usuario as any).NM_LOGRADOURO || "—"} />
+                      <Campo
+                        label="Telefone"
+                        valor={
+                          (usuario as any).NR_TELEFONE
+                            ? `+${(usuario as any).NR_DDI || 55} (${(usuario as any).NR_DDD}) ${(usuario as any).NR_TELEFONE}`
+                            : "—"
+                        }
+                      />
+                    </div>
                   </div>
 
                 </div>
@@ -313,16 +301,4 @@ function Campo({ label, valor }: { label: string; valor: string }) {
       <span className="text-sm text-white/80 font-medium">{valor || "—"}</span>
     </div>
   )
-}
-
-function formatCPF(cpf: string): string {
-  const d = cpf.replace(/\D/g, "")
-  if (d.length !== 11) return cpf
-  return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
-}
-
-function formatCEP(cep: string): string {
-  const d = cep.replace(/\D/g, "")
-  if (d.length !== 8) return cep
-  return d.replace(/(\d{5})(\d{3})/, "$1-$2")
 }

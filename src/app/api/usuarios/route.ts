@@ -9,6 +9,16 @@ type Usuario = {
   NR_CNH: number
   DT_NASCIMENTO: string
   NR_CPF: string
+  // Endereço
+  NM_ESTADO: string
+  NR_CEP: string
+  NM_CIDADE: string
+  NM_BAIRRO: string
+  NM_LOGRADOURO: string
+  // Telefone
+  NR_DDI: number
+  NR_DDD: number
+  NR_TELEFONE: string
 }
 
 type LoginUsuario = {
@@ -54,7 +64,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const {
+      // Dados pessoais
       NM_USUARIO, NR_IDADE, NR_CNH, DT_NASCIMENTO, NR_CPF,
+      // Endereço
+      NM_ESTADO, NR_CEP, NM_CIDADE, NM_BAIRRO, NM_LOGRADOURO,
+      // Telefone
+      NR_DDI, NR_DDD, NR_TELEFONE,
+      // Login
       DS_USUARIO, DS_SENHA,
     } = body
 
@@ -68,7 +84,6 @@ export async function POST(request: NextRequest) {
     const usuarios = await lerJSON<Usuario>(USUARIOS_PATH)
     const logins = await lerJSON<LoginUsuario>(LOGINS_PATH)
 
-    // Verifica CPF e usuário duplicados
     if (usuarios.find((u) => u.NR_CPF === NR_CPF)) {
       return NextResponse.json({ erro: "CPF já cadastrado." }, { status: 409 })
     }
@@ -87,6 +102,16 @@ export async function POST(request: NextRequest) {
       NR_CNH: Number(NR_CNH) || 0,
       DT_NASCIMENTO: DT_NASCIMENTO || "",
       NR_CPF,
+      // Endereço — agora salvo junto com o usuário
+      NM_ESTADO: NM_ESTADO || "",
+      NR_CEP: NR_CEP || "",
+      NM_CIDADE: NM_CIDADE || "",
+      NM_BAIRRO: NM_BAIRRO || "",
+      NM_LOGRADOURO: NM_LOGRADOURO || "",
+      // Telefone — agora salvo junto com o usuário
+      NR_DDI: Number(NR_DDI) || 55,
+      NR_DDD: Number(NR_DDD) || 0,
+      NR_TELEFONE: NR_TELEFONE || "",
     }
 
     const novoLogin: LoginUsuario = {

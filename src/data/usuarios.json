@@ -3,8 +3,16 @@
     "ID_USUARIO": 1,
     "NM_USUARIO": "Gustavo Souto de Melo",
     "NR_IDADE": 0,
-    "NR_CNH": 6548998,
+    "NR_CNH": 56548484,
     "DT_NASCIMENTO": "2006-04-28",
-    "NR_CPF": "48447912817"
+    "NR_CPF": "48447912817",
+    "NM_ESTADO": "SP",
+    "NR_CEP": "08225310",
+    "NM_CIDADE": "São Paulo",
+    "NM_BAIRRO": "Itaquera",
+    "NM_LOGRADOURO": "Av. das Alamandas, 306",
+    "NR_DDI": 55,
+    "NR_DDD": 11,
+    "NR_TELEFONE": "932290482"
   }
 ]
